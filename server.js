@@ -10,14 +10,19 @@ app.get("/img", async (req, res) => {
 
   try {
     const response = await fetch(url);
+
+    const contentType = response.headers.get("content-type");
+
     const buffer = Buffer.from(await response.arrayBuffer());
 
-    res.set("Content-Type", "image/gif");
+   
+    res.set("Content-Type", contentType || "application/octet-stream");
     res.set("Cache-Control", "no-store");
 
     res.send(buffer);
   } catch (err) {
-    res.status(500).send("Failed to fetch image");
+    console.error(err);
+    res.status(500).send("Fetch failed");
   }
 });
 
