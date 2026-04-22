@@ -15,7 +15,7 @@ app.get("/img", async (req, res) => {
 
     const buffer = Buffer.from(await response.arrayBuffer());
 
-   
+    // 🔥 IMPORTANT: forward actual content type
     res.set("Content-Type", contentType || "application/octet-stream");
     res.set("Cache-Control", "no-store");
 
