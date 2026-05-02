@@ -9,24 +9,27 @@ app.get("/img", async (req, res) => {
   if (!url) return res.status(400).send("Missing url");
 
   try {
-    const response = await fetch(url, {
-      cache: "no-store", // 🔥 force fresh request to GMU
+    // 🔥 cache-bust BOTH upstream + proxy layer
+    const response = await fetch(url + `?t=${Date.now()}`, {
+      cache: "no-store",
       headers: {
-        "User-Agent": "Mozilla/5.0" // 🔥 helps avoid blocked/bot responses
+        "User-Agent": "Mozilla/5.0",
+        "Cache-Control": "no-cache"
       }
     });
 
     const contentType = response.headers.get("content-type");
     const buffer = Buffer.from(await response.arrayBuffer());
 
-    // 🔥 STRONG anti-cache headers
+    // 🔥 IMPORTANT: anti-cache headers (must be BEFORE send)
     res.set("Content-Type", contentType || "application/octet-stream");
-    res.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+    res.set("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
     res.set("Pragma", "no-cache");
     res.set("Expires", "0");
     res.set("Surrogate-Control", "no-store");
 
     res.send(buffer);
+
   } catch (err) {
     console.error(err);
     res.status(500).send("Fetch failed");
